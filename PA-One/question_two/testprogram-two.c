@@ -25,7 +25,7 @@
 */
 
 int main(){
-         /*  this code works, but its not the proper way to do it? 
+         /*  this was just the first attempt at the problem which actually ended up working but its improper 
          // declaring the numbers and allocating memory 
          int firstNumber = 1; 
          int secondNumber = 2;
@@ -41,10 +41,11 @@ int main(){
          */ 
 
 	int firstNumber = 5; 
- 	int secondNumber = 10; 
+ 	int secondNumber = 3; 
         int sum = 0;
 
         int returnvalue = syscall(549, firstNumber, secondNumber, &sum);  // should return 0  
 	printf("System Call: (cs3753_add) returns > %d\n", returnvalue);
+
 	printf("Sum: %d\n", sum); 
 }
