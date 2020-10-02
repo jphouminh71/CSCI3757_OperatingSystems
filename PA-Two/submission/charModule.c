@@ -24,13 +24,12 @@ ssize_t pa2_char_driver_read(struct file* pfile, char __user *buffer, size_t len
 		printk(KERN_ALERT "Going to read the remaining bytes of the buffer\n");
 		bytesToRead = bytesLeftToRead; 
 	}
-	else {
-		copy_to_user(buffer, kernelBuffer + *offset, bytesToRead);
-		*offset += bytesToRead;  // have to update the offset into the buffer to the next unread spot in the device buffer 
-		printk(KERN_ALERT "OFFSET AFTER INCREMENTING: %d\n", *offset);
-		printk(KERN_ALERT "Read %d bytes\n", bytesToRead);
-		return bytesToRead;
-	}
+	
+	copy_to_user(buffer, kernelBuffer + *offset, bytesToRead);
+	*offset += bytesToRead;  // have to update the offset into the buffer to the next unread spot in the device buffer 
+	printk(KERN_ALERT "OFFSET AFTER INCREMENTING: %d\n", *offset);
+	printk(KERN_ALERT "Read %d bytes\n", bytesToRead);
+	return bytesToRead;
 }
 
 ssize_t pa2_char_driver_write (struct file* pfile, const char __user* buffer, size_t length, loff_t* offset) { 

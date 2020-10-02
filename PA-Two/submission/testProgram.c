@@ -46,9 +46,8 @@ int main() {
 		printf("w = write()\n");
 		printf("s = seek(offsetValue, whence)\n");
 		printf("e = terminate program\n");
-		choice = getchar();
 		printf("\n");
-
+		choice = getchar();
 		switch (choice) {
 
 			/* had to use memset because there was a write issue where i would write to a user buffer and
@@ -79,14 +78,16 @@ int main() {
 			case 'w':
 				userBuffer = malloc(BUFFER_SIZE);
 				printf("Enter the data you want to write\n");
-				scanf("%s", userBuffer);
+				scanf(" %[^\n]", userBuffer);
 				
 				if (strlen(userBuffer) > BUFFER_SIZE) {
 					printf("Overflow buffer input.");
 					break;	
 				}
-				write(deviceFile, userBuffer, strlen(userBuffer));
+			
+				write(deviceFile, userBuffer, strlen(userBuffer)); 
 				free(userBuffer);
+				
 				break;
 			case 's':
 				printf("Enter value for whence.\n");
@@ -103,7 +104,6 @@ int main() {
 			default:
 				printf("invalid input\n");
 		}
-
 		choice = getchar();
 	}
 	close(deviceFile);
@@ -126,8 +126,6 @@ int main() {
 			- When user issues a read, a new buffer will be created and filled with ' '
 			- kernel will load its contents the beginning of the user buffer 
 			- user buffer will then output all the contents that it got loaded with.
-
-
 */
 
 
