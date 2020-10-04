@@ -21,25 +21,33 @@ ssize_t pa2_char_driver_read(struct file* pfile, char __user *buffer, size_t len
 	printk(KERN_ALERT "OFFSET BEFORE INCREMENTING: %d\n", *offset);
 
 	if (bytesLeftToRead < length) {  // implies that user wants to read more than what is left available, just let them read the rest
+		
+		/* if bytes left to read is negative, then make them read 0 */
+		if (bytesLeftToRead < 0) {
+			printk(KERN_ALERT "At the end of the buffer\n");
+			return -1;
+		}
 		printk(KERN_ALERT "Going to read the remaining bytes of the buffer\n");
 		bytesToRead = bytesLeftToRead; 
+
 	}
-	
-	copy_to_user(buffer, kernelBuffer + *offset, bytesToRead);
-	*offset += bytesToRead;  // have to update the offset into the buffer to the next unread spot in the device buffer 
-	printk(KERN_ALERT "OFFSET AFTER INCREMENTING: %d\n", *offset);
-	printk(KERN_ALERT "Read %d bytes\n", bytesToRead);
-	return bytesToRead;
+	else {
+		copy_to_user(buffer, kernelBuffer + *offset, bytesToRead);
+		*offset += bytesToRead;  // have to update the offset into the buffer to the next unread spot in the device buffer 
+		printk(KERN_ALERT "OFFSET AFTER INCREMENTING: %d\n", *offset);
+		printk(KERN_ALERT "Read %d bytes\n", bytesToRead);
+		return bytesToRead;
+	}
 }
 
 ssize_t pa2_char_driver_write (struct file* pfile, const char __user* buffer, size_t length, loff_t* offset) { 
 	printk(KERN_ALERT "------Write Function ------\n");
-	int bytesLeftToRead = BUFFER_SIZE - *offset; 
+	int bytesLeftToWrte = BUFFER_SIZE - *offset; 
 
 	// make sure theres enough room in the buffer to write if we get close to the end
-	if ( bytesLeftToRead < length ) {
+	if ( bytesLeftToWrte < length ) {
 		printk(KERN_ALERT "Not enough memory to write %d bytes\n", length);
-		return 0;
+		return -1;
 	}
 
 	printk(KERN_ALERT "%d values will be written to the kernel buffer", length);
@@ -102,11 +110,19 @@ loff_t pa2_char_driver_seek (struct file* pfile, loff_t offset, int whence) {
 	}
 
 	// bounds checking
-	if (currentOffset < 0 || currentOffset > BUFFER_SIZE) {
-		printk(KERN_ALERT "Out of Bounds Seek. Offset Remains: %d", currentOffset);
+	if (currentOffset < 0) {
+		printk(KERN_ALERT "calculated offset: %d\n", currentOffset);
+		printk(KERN_ALERT "Out of Bounds Seek. Offset Remains: %d\n", pfile->f_pos);
+		return -1;
+	}
+	if (currentOffset > BUFFER_SIZE) {
+		printk(KERN_ALERT "calculated offset: %d\n", currentOffset);
+		printk(KERN_ALERT "Out of Bounds seek. Offset Remains %d\n", pfile->f_pos);
+		return -1;
 	}
 
 	// now update f_pos with currentOffset
+
 	printk(KERN_ALERT "Offset is now at position: %d\n", currentOffset);
 	pfile->f_pos = currentOffset;
 	return currentOffset;
