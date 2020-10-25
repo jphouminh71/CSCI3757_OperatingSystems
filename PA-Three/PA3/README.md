@@ -33,7 +33,12 @@
     * set up edge case for being able to open the given file
     * for the current thread, attempt to loop through the files arguments
     * for X amount of threads, make sure they process all the files, ex given 2 req threads and 4 files, make sure they get all the files
-    * Make the threads log the hostname into serviced.txt
+    * Once you have access to an open file, try to loop through each line, just have one thread to test this
+
+
+
+# ASK AT OFFICE HOURS
+    * cant figur out how to initalize and append to 'files' array in the inputFiles struct.
     
 
 

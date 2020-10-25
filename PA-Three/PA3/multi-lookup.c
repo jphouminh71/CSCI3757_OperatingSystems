@@ -2,9 +2,26 @@
 
 
 void* requesterThreads(void * inputFiles){
-    // unpack argument
-    requestThreadArg* arg = (requestThreadArg*) inputFiles;
     
+    /* unpacking */
+    requestThreadArg* arg = (requestThreadArg*) inputFiles;
+    char* servicetxtfile = arg->servicelog;
+
+    /* See if theres any unprocessed files, otherwise exit() */ 
+    for (int i = 0; i < arg->files->totalFileCount; i++) {
+        if (!arg->files->files[i].serviced) {  // unserviced
+            //printf("unserviced file: %s\n", arg->files->files[i].filename); 
+        }
+    }
+
+    FILE * fptr = fopen(servicetxtfile, "r+"); 
+    if (fptr != NULL) {
+        printf("Opened service.txt\n");
+    }
+
+
+
+    fclose(fptr);
     pthread_exit(NULL);
  }
 
@@ -12,6 +29,11 @@ void* requesterThreads(void * inputFiles){
  void* resolverThreads(void * inputFiles){
     // unpack argument
     resolverThreadArg* arg = (resolverThreadArg*) inputFiles;
+    char* resultstxtfile = arg->resultslog;
+    FILE * fptr = fopen(resultstxtfile, "r+"); 
+    if (fptr != NULL) {
+        printf("Opened results.txt\n");
+    }
 
     pthread_exit(NULL);
  }
@@ -63,7 +85,7 @@ int main(int argc, char* argv[] ) {
 
     /* Initializing the inputFiles struct */
     inputFiles* input_files;  
-    input_files = malloc(sizeof(*input_files) + sizeof(file) * argc-5);
+    input_files = malloc(sizeof(*input_files) + sizeof(file**) * argc-5);
     input_files->currentFileIndex = 0;
     int fileCount = 0;
     for (int i = 5; i < argc; i++) {
@@ -73,11 +95,18 @@ int main(int argc, char* argv[] ) {
         int isValid = isValidFile(file.filename);
         if (isValid == 1) {  
             fileCount = fileCount + 1;
-            input_files->files[i] = file;
-            //printf("Valid file: %s\n", input_files->files[i].filename);
+            
+            // go to office hours to figure out how to do this.
+            //printf("Valid file: %s\n", infiles[i]->filename);
         }
     }
     input_files->totalFileCount = fileCount; 
+
+    /* looping to see if you set the files correctly */
+    for (int h = 0; h < input_files->totalFileCount; h++) {
+        printf(">> %s\n", input_files->files[h].filename);
+    }
+
     pthread_mutex_init(&input_files->file_lock, NULL);
     
     /* Initializing the sharedBuffer */
@@ -101,11 +130,13 @@ int main(int argc, char* argv[] ) {
     resolver.buffer = shared;
     pthread_mutex_init(&resolver.results_lock, NULL);
 
+
+    /*
     printf("Requester thread count %d\n", requesterThreadsCount);
     printf("Resolver thread count %d\n", resolverThreadCount);
     printf("Requester log name: %s\n", requesterlog);
     printf("Resolver log name: %s\n", resolverlog);
-
+    */
 
 
     /* start the threads */
