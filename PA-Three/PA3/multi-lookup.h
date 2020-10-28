@@ -1,23 +1,25 @@
 #ifndef multi-lookup.h
 #define multi-lookup.h
 
-#include <util.h>
 #include <string.h>
 #include <pthread.h>
-#include <semaphore.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
 #include <stdbool.h>
 #include <sys/time.h>
 
+#include "util.c"
+
 #define ARRAY_SIZE 20
 #define MAX_INPUT_FILES 10
 #define MAX_RESOLVER_THREADS 10
 #define MAX_REQUESTER_THREADS 5
 #define MAX_NAME_LENGTH 1025
-#define MAX_IP_LENGTH INET6 ADDRSTRLEN
 
+char* getExtension(char *filename);
+int isValidFile(char *filename);
+void clearLogs();
 void *requesterThreads(void * inputFiles);
 void *resolverThreads(void * inputFiles);
 int isValidFile(char* filename);
@@ -49,7 +51,7 @@ typedef struct {
 
 /* Requester Thread Arguments */
 typedef struct {
-    pthread_mutex_t service_lock;   /* Lock that the requester threads need to be able to write to requester.txt safely */
+    pthread_mutex_t service_lock;   /* Lock that the requester threads need to be able to write to serviced.txt safely */
     char* servicelog;               /* The service log that thread will append too */
     inputFiles* files;              /* pointer to the inputFiles struct */
     sharedBuffer* buffer;           /* pointer to the sharedBuffer struct */
