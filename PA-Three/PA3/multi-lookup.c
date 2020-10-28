@@ -95,9 +95,12 @@ typedef struct {
     char* testString2 = "youtube.com";
     char* testString3 = "yahoo.com";
 
-    char ipString[INET6_ADDRSTRLEN];
+    //char ipString[INET_ADDRSTRLEN];
+    char* ipString = malloc(sizeof(char) * INET_ADDRSTRLEN);
 
-    dnslookup(testString2, ipString, sizeof(ipString));
+    if (dnslookup(testString1, ipString, INET_ADDRSTRLEN) == UTIL_SUCCESS ) {
+        printf(">SUCCEEDED\n");
+    }
 
     fprintf(results, "IPSTRING: %s\n", ipString);  // should print out the generated ip string
 
