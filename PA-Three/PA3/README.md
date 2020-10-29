@@ -1,14 +1,9 @@
-# COMPILE COMMANDS
-
-    -- Testing the requestor thread function -- 
-    * These test cases are to just making sure the threads are not runnning over eachother 
-    gcc -o run -pthread multi-lookup.c util.c
-    ./run 1 1 serviced.txt results.txt names1.txt names2.txt names3.txt multi-lookup.c
-    ./run21 1 serviced.txt results.txt names1.txt names2.txt names3.txt multi-lookup.c
-
-    -- Testing the resolver thread function --
-    gcc -o run -pthread multi-lookup.c 
-    ./run 0 1 serviced.txt results.txt names1.txt names2.txt names3.txt multi-lookup.c  , creates a single requestor thread so you have to mock up some data 
+# COMPILE / RUN COMMANDS
+    
+    compile: 
+    gcc -o run -pthread  multi-lookup.c util.c
+    run: 
+    ./run 1 1 serviced.txt results.txt names1.txt   , creates a single requestor thread so you have to mock up some data 
 
 
 
