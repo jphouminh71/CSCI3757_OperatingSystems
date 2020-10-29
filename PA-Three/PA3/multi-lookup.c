@@ -81,7 +81,6 @@ void* requesterThreads(void * inputFiles){
 
         if (!canService) { break; } /** if thread can't find anything to service then exit */
 
-        bool flag = false;
         int currentLine = 0;
         char* input;
         size_t len = 0;
@@ -94,14 +93,11 @@ void* requesterThreads(void * inputFiles){
                     printf(">%d\n", currentLine);
                 } 
             */
-                if (arg->buffer->currentPosition > 0) {
-                    pthread_cond_signal(&arg->buffer->isEmpty);
-                    if (arg->buffer->currentPosition == ARRAY_SIZE) {   // if it ends up getting filled up
-                        pthread_cond_wait(&arg->buffer->isFull, &arg->buffer->buffer_lock);
-                        // should come back zero, 
-                    }
-                    printf(">%d\n", currentLine);
+                if (arg->buffer->currentPosition == ARRAY_SIZE) {   // if it ends up getting filled up
+                    pthread_cond_wait(&arg->buffer->isFull, &arg->buffer->buffer_lock);
+                    printf("Counter after wait: %d\n", arg->buffer->currentPosition);
                 }
+                printf(">%d\n", currentLine);
                 currentLine++;
 
                 int length = strlen(input);
@@ -118,6 +114,7 @@ void* requesterThreads(void * inputFiles){
                 input = NULL;
                 domainName = NULL;
                 free(domainName);
+                pthread_cond_signal(&arg->buffer->isEmpty);         // if the resolvers are waiting then we tell them something is here
             pthread_mutex_unlock(&arg->buffer->buffer_lock);
         }
         fclose(currentFile);
@@ -145,12 +142,14 @@ void* requesterThreads(void * inputFiles){
         // Get into the buffer and try to grab something 
         pthread_mutex_lock(&arg->buffer->buffer_lock);
             if (arg->buffer->currentPosition <= 0) {   
-                pthread_cond_signal(&arg->buffer->isFull);     
                 pthread_cond_wait(&arg->buffer->isEmpty, &arg->buffer->buffer_lock);    //buffer is empty release lock and wait for items 
+                printf("I CAME BACK FROM SLEEP\n");
             }   
             char* domainName;
             arg->buffer->currentPosition--;  
             domainName = arg->buffer->buffer[arg->buffer->currentPosition];  // get the next avaiable item 
+            printf("Just grabbed: %s\n", domainName);
+            pthread_cond_signal(&arg->buffer->isFull);   // tell the requestors that they can put something else in  
         pthread_mutex_unlock(&arg->buffer->buffer_lock);
 
 
