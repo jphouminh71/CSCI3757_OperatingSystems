@@ -2,7 +2,7 @@
 
     -- Testing the requestor thread function -- 
     * These test cases are to just making sure the threads are not runnning over eachother 
-    gcc -o run -pthread multi-lookup.c 
+    gcc -o run -pthread multi-lookup.c util.c
     ./run 1 1 serviced.txt results.txt names1.txt names2.txt names3.txt multi-lookup.c
     ./run21 1 serviced.txt results.txt names1.txt names2.txt names3.txt multi-lookup.c
 

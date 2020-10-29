@@ -81,14 +81,28 @@ void* requesterThreads(void * inputFiles){
 
         if (!canService) { break; } /** if thread can't find anything to service then exit */
 
+        bool flag = false;
+        int currentLine = 0;
         char* input;
         size_t len = 0;
         while(getline(&input, &len, currentFile) != -1){
             pthread_mutex_lock(&arg->buffer->buffer_lock);          // Try to get into the buffer , blocks if you cant 
+            /*
                 if (arg->buffer->currentPosition == ARRAY_SIZE) {
-                    pthread_cond_broadcast(&arg->buffer->isEmpty);        // UNCOMMENT THIS TO START THE RESOLVER THREADS 
+                    pthread_cond_signal(&arg->buffer->isEmpty);        // UNCOMMENT THIS TO START THE RESOLVER THREADS 
                     pthread_cond_wait(&arg->buffer->isFull,&arg->buffer->buffer_lock);      // if there is 20 items, then block and wait for signal
+                    printf(">%d\n", currentLine);
                 } 
+            */
+                if (arg->buffer->currentPosition > 0) {
+                    pthread_cond_signal(&arg->buffer->isEmpty);
+                    if (arg->buffer->currentPosition == ARRAY_SIZE) {   // if it ends up getting filled up
+                        pthread_cond_wait(&arg->buffer->isFull, &arg->buffer->buffer_lock);
+                        // should come back zero, 
+                    }
+                    printf(">%d\n", currentLine);
+                }
+                currentLine++;
 
                 int length = strlen(input);
                 char* domainName = (char *)malloc(length-1);
@@ -131,11 +145,11 @@ void* requesterThreads(void * inputFiles){
         // Get into the buffer and try to grab something 
         pthread_mutex_lock(&arg->buffer->buffer_lock);
             if (arg->buffer->currentPosition <= 0) {   
-                pthread_cond_broadcast(&arg->buffer->isFull);        // UNCOMMENT THIS TO START THE RESOLVER THREADS  
+                pthread_cond_signal(&arg->buffer->isFull);     
                 pthread_cond_wait(&arg->buffer->isEmpty, &arg->buffer->buffer_lock);    //buffer is empty release lock and wait for items 
-            }
-            arg->buffer->currentPosition--;     
+            }   
             char* domainName;
+            arg->buffer->currentPosition--;  
             domainName = arg->buffer->buffer[arg->buffer->currentPosition];  // get the next avaiable item 
         pthread_mutex_unlock(&arg->buffer->buffer_lock);
 
@@ -143,9 +157,8 @@ void* requesterThreads(void * inputFiles){
         // by this point you should have access to whatever you needed out of the buffer 
         // writing the value to results.txt
         pthread_mutex_lock(&arg->results_lock);
-
             if (dnslookup(domainName, ipString, INET_ADDRSTRLEN) == UTIL_FAILURE ) {
-                    printf("%s,\n", ipString);
+                    printf("%s,\n", domainName);
                     fprintf(results,"%s\n", domainName);
             }
             else {
