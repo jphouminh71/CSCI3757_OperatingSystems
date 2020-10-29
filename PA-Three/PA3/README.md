@@ -53,9 +53,3 @@
 
 
 # ASK AT OFFICE HOURS
-    * Dns function is returning UNHANDLED?
-    * i have to import "util.c" and not <util.h> or else i get a error where it says its undefined
-    * how can i silence these warnings? 
-
-
-        

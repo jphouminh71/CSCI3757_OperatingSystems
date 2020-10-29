@@ -30,7 +30,6 @@
 
 #define UTIL_FAILURE -1
 #define UTIL_SUCCESS 0
-#define UTIL_DEBUG
 
 /* Fuction to return the first IP address found
  * for hostname. IP address returned as string

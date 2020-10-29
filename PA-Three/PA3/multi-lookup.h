@@ -1,6 +1,7 @@
-#ifndef multi-lookup.h
-#define multi-lookup.h
+#ifndef MULTI_LOOKUP_H
+#define MULTI_LOOKUP_H
 
+#include "util.h"
 #include <string.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -8,8 +9,6 @@
 #include <fcntl.h>
 #include <stdbool.h>
 #include <sys/time.h>
-
-#include "util.c"
 
 #define ARRAY_SIZE 20
 #define MAX_INPUT_FILES 10
@@ -41,9 +40,11 @@ typedef struct {
 
 /* shared buffer between requester and resolver */
 typedef struct {
+    int threadCount;                /* The total amount of threads that started, need this to tell resolvers to exit */
+    int threadsFinished;            /* The amount of requestor threads that have finished */
     pthread_cond_t isFull;          /* Should make requesters block */
     pthread_cond_t isEmpty;         /* Should make resolvers block */
-    pthread_mutex_t buffer_lock;   /* mutex to get into the shared buffer */
+    pthread_mutex_t buffer_lock;    /* mutex to get into the shared buffer */
     int currentPosition;            /* each requester thread will update this as they need to update  */
     char* buffer[];
 } sharedBuffer;

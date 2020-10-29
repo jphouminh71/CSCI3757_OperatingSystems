@@ -30,8 +30,3 @@ submit:
 	echo; echo Bundling the following files for submission; \
 	tar --transform "s|^|PA3-$$username/|" -cvf PA3-$$username.txt $(SUBMITFILES); \
 	echo; echo Please upload the file PA3-$$username.txt to Canvas to complete your submission; echo
-
-# 1 Requestor 1 Resolver and 3 files to process
-test1:
-	gcc -o test1 -pthread multi-lookup.c 
-	./test1 1 1 serviced.txt  results.txt  names1.txt names2.txt names3.txt
