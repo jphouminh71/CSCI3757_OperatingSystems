@@ -115,7 +115,7 @@ void* requesterThreads(void * inputFiles){
                 if (arg->buffer->currentPosition == ARRAY_SIZE) {   // if it ends up getting filled up
                     pthread_cond_signal(&arg->buffer->isEmpty);
                     pthread_cond_wait(&arg->buffer->isFull, &arg->buffer->buffer_lock);
-                    printf("Counter after wait: %d\n", arg->buffer->currentPosition);       // this should always be 0, they are only signaled to work when array gets emptied
+                    //printf("Counter after wait: %d\n", arg->buffer->currentPosition);       // this should always be 0, they are only signaled to work when array gets emptied
                 }
                 currentLine++;
                 
@@ -124,7 +124,7 @@ void* requesterThreads(void * inputFiles){
                     input[length-1] = 0;
                 }
         
-                //printf("Line Aquired: %s\n", input);
+                printf("Line Aquired: %s\n", input);
                 arg->buffer->buffer[arg->buffer->currentPosition] = input;       // should always start at 0
                 arg->buffer->currentPosition++;
                 input = NULL;
