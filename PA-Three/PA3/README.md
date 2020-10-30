@@ -6,6 +6,23 @@
     ./run 1 1 serviced.txt results.txt names1.txt   , creates a single requestor thread so you have to mock up some data 
 
 
+# BUG LIST 
+    * When you are given a bunch of bogus filenames, the programs freezes. FIXED
+    * Segfault when number of requestor threads is >= resolver threads. 
+        - signal vs broadcast?
+        - find where you are accessing the buffer and print out the values of what the buffer index is. 
+
+
+
+
+# ERROR HANDLING
+    * When you get a bogus host name, print out a message to stderr saying that you got a bogus hostname
+        - Do the same for bogus output / input file path 
+    
+    * have to catch all potential system call errors and direct them to stderr.
+
+
+
 
 # Personal Notes
     * mutexes block if calling threads can't get the thread

@@ -49,10 +49,6 @@ int dnslookup(const char* hostname, char* firstIPstr, int maxSize){
 		perror("Error Converting IP to String");
 		return UTIL_FAILURE;
 	    }
-		else {
-			strncpy(firstIPstr, ipstr, maxSize);
-	    	firstIPstr[maxSize-1] = '\0';
-		}
 #ifdef UTIL_DEBUG
 	    fprintf(stdout, "%s\n", ipv4str);
 #endif
@@ -77,8 +73,8 @@ int dnslookup(const char* hostname, char* firstIPstr, int maxSize){
 	}
 	/* Save First IP Address */
 	if(result==headresult){
-	    // strncpy(firstIPstr, ipstr, maxSize);
-	    // firstIPstr[maxSize-1] = '\0';
+	    strncpy(firstIPstr, ipstr, maxSize);
+	    firstIPstr[maxSize-1] = '\0';
 	}
     }
 

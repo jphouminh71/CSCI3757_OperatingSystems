@@ -16,7 +16,6 @@
 #define MAX_REQUESTER_THREADS 5
 #define MAX_NAME_LENGTH 1025
 
-char* getExtension(char *filename);
 int isValidFile(char *filename);
 void clearLogs();
 void *requesterThreads(void * inputFiles);
