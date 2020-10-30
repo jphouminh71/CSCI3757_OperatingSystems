@@ -77,8 +77,8 @@ int dnslookup(const char* hostname, char* firstIPstr, int maxSize){
 	}
 	/* Save First IP Address */
 	if(result==headresult){
-	    //strncpy(firstIPstr, ipstr, maxSize);
-	    //firstIPstr[maxSize-1] = '\0';
+	    // strncpy(firstIPstr, ipstr, maxSize);
+	    // firstIPstr[maxSize-1] = '\0';
 	}
     }
 
