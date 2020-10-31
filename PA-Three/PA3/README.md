@@ -18,6 +18,10 @@
     * The service file is is an abitrary string, its not just serviced.txt or results.txt
 
 
+    * What you think the problem is.
+        1. When a requestors fills in the buffer with 20 items, it will release the lock and block. The mutex is now unlocked and you expect a resolver to come and pick it up
+        2. What is happening in certain cases is that once a requester unlocks the lock, another requestor obtains access to the lock, but shouldn't it recognize that the array is already filled even if it does get the lock? 
+
 
 
 # ERROR HANDLING
@@ -69,4 +73,15 @@
 
 
 
-# ASK AT OFFICE HOURS
+# THIS IS THE PROBLEM 
+Something is happening everytime you get to the 18th file to process. You are getting a seg fault.
+
+
+
+
+// this prevents the overloading of buffers
+while (arg->buffer->currentPosition == ARRAY_SIZE) {   // implies that a requestor tried to do its work right after another requestor was signaled and got its buffer filled
+                                pthread_cond_broadcast(&arg->buffer->isEmpty);
+                                pthread_cond_wait(&arg->buffer->isFull, &arg->buffer->buffer_lock);
+                                printf("%X Requestor has come back from sleep. Buffer Position:  %d\n", (int)pthread_self(), arg->buffer->currentPosition);
+                            }

@@ -80,31 +80,37 @@ void* requesterThreads(void * inputFiles){
             }
         pthread_mutex_unlock(&arg->files->file_lock);
 
-        int currentLine = 0;
         char* input;
         size_t len = 0;
-        while(getline(&input, &len, currentFile) != -1){
-            pthread_mutex_lock(&arg->buffer->buffer_lock);          // Try to get into the buffer , blocks if you cant 
-                if (arg->buffer->currentPosition >= ARRAY_SIZE) {   // if it ends up getting filled up
-                    printf("%X requestor thread array capacity reached %d, going to sleep\n", (int)pthread_self(), arg->buffer->currentPosition);
-                    pthread_cond_broadcast(&arg->buffer->isEmpty);
-                    pthread_cond_wait(&arg->buffer->isFull, &arg->buffer->buffer_lock);
-                    printf("%X Requestor has come back from sleep. Buffer Position:  %d\n", (int)pthread_self(), arg->buffer->currentPosition);
-                }
-                currentLine++;  // just for printing out what line of the file we are on, might just get rid of this
+        pthread_mutex_lock(&arg->buffer->buffer_lock);          // Try to get into the buffer , blocks if you cant
+            while(getline(&input, &len, currentFile) != -1){
+                    if (arg->buffer->currentPosition == ARRAY_SIZE) {   // if it ends up getting filled up
+                            //printf("%X requestor array capacity reached %d, going to sleep\n", (int)pthread_self(), arg->buffer->currentPosition);
+                            pthread_cond_broadcast(&arg->buffer->isEmpty);
+                            pthread_cond_wait(&arg->buffer->isFull, &arg->buffer->buffer_lock);     // if one thread hits 20 and waits, what happens if another requester obtains that lock, at this stage, resolvers should ALWAYS be the next to the lock
+                            //printf("%X Requestor has come back from sleep. Buffer Position:  %d\n", (int)pthread_self(), arg->buffer->currentPosition);
+
+                            while (arg->buffer->currentPosition == ARRAY_SIZE) {   // implies that a requestor tried to do its work right after another requestor was signaled and got its buffer filled
+                                pthread_cond_broadcast(&arg->buffer->isEmpty);
+                                pthread_cond_wait(&arg->buffer->isFull, &arg->buffer->buffer_lock);
+                                printf("%X Requestor has come back from sleep. Buffer Position:  %d\n", (int)pthread_self(), arg->buffer->currentPosition);
+                            }
+                    } 
+                
+                    int length = strlen(input);
+                    if(input[length-1] == '\n'){
+                        input[length-1] = 0;
+                    }
             
-                int length = strlen(input);
-                if(input[length-1] == '\n'){
-                    input[length-1] = 0;
-                }
-        
-                //printf("Line Aquired: %s\n", input);
-                arg->buffer->buffer[arg->buffer->currentPosition] = input;       // should always start at 0
-                arg->buffer->currentPosition++;
-                input = NULL;
-            pthread_mutex_unlock(&arg->buffer->buffer_lock);
-        }
-        fclose(currentFile);
+                    //printf("Line Aquired: %s\n", input);
+                    arg->buffer->buffer[arg->buffer->currentPosition] = input;       // should always start at 0
+                    arg->buffer->currentPosition++;
+                    //printf("BUFFER SIZE: %d\n", arg->buffer->currentPosition);
+                    input = NULL;
+            }
+            pthread_cond_broadcast(&arg->buffer->isEmpty);   // once the last of the contents are put into the array signal
+        pthread_mutex_unlock(&arg->buffer->buffer_lock);
+        //fclose(currentFile);
     }
  }
 
@@ -122,11 +128,10 @@ void* requesterThreads(void * inputFiles){
                     pthread_mutex_unlock(&arg->buffer->buffer_lock);        // release the lock before exiting
                     pthread_exit(NULL);
                 }
-                printf("Resolver %Xbuffer is Empty going to sleep.\n", (int)pthread_self());
+                printf("Resolver %X buffer is %d going to sleep.\n", (int)pthread_self(), arg->buffer->currentPosition);
                 pthread_cond_broadcast(&arg->buffer->isFull);
                 pthread_cond_wait(&arg->buffer->isEmpty, &arg->buffer->buffer_lock);    //buffer is empty release lock and wait for items 
-                printf("Resolver %X has come back from sleep\n", (int)pthread_self());
-                printf("Resolver after wake up: Buffer has %d items.\n", arg->buffer->currentPosition);
+                printf("Resolver %X has come back from sleep, buffer has %d items\n", (int)pthread_self(), arg->buffer->currentPosition);
             }   
             char* domainName;
             arg->buffer->currentPosition--;  
