@@ -12,6 +12,11 @@
         - signal vs broadcast?
         - find where you are accessing the buffer and print out the values of what the buffer index is. 
 
+        1. Go uncomment all the file closes
+        2. If you end up figuring this out at the end, try to free up memory.
+
+    * The service file is is an abitrary string, its not just serviced.txt or results.txt
+
 
 
 
