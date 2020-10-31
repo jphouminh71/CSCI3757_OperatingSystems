@@ -62,6 +62,7 @@ void* requesterThreads(void * inputFiles){
                     canService = true;
                     arg->files->files[i].serviced = true;
                     currentFile = fopen(arg->files->files[i].filename, "r+");
+                    printf("I JUST OPENED UP: %s\n", arg->files->files[i].filename);
                     serviceCount++;
                     break;  // go and work on this file 
                 }
@@ -79,7 +80,6 @@ void* requesterThreads(void * inputFiles){
                 }
             }
         pthread_mutex_unlock(&arg->files->file_lock);
-
         char* input;
         size_t len = 0;
         pthread_mutex_lock(&arg->buffer->buffer_lock);          // Try to get into the buffer , blocks if you cant
@@ -91,6 +91,7 @@ void* requesterThreads(void * inputFiles){
                             //printf("%X Requestor has come back from sleep. Buffer Position:  %d\n", (int)pthread_self(), arg->buffer->currentPosition);
 
                             while (arg->buffer->currentPosition == ARRAY_SIZE) {   // implies that a requestor tried to do its work right after another requestor was signaled and got its buffer filled
+                                //printf("AM I THE LAS THING\n");
                                 pthread_cond_broadcast(&arg->buffer->isEmpty);
                                 pthread_cond_wait(&arg->buffer->isFull, &arg->buffer->buffer_lock);
                                 printf("%X Requestor has come back from sleep. Buffer Position:  %d\n", (int)pthread_self(), arg->buffer->currentPosition);
@@ -110,7 +111,7 @@ void* requesterThreads(void * inputFiles){
             }
             pthread_cond_broadcast(&arg->buffer->isEmpty);   // once the last of the contents are put into the array signal
         pthread_mutex_unlock(&arg->buffer->buffer_lock);
-        //fclose(currentFile);
+        fclose(currentFile);
     }
  }
 
@@ -128,11 +129,12 @@ void* requesterThreads(void * inputFiles){
                     pthread_mutex_unlock(&arg->buffer->buffer_lock);        // release the lock before exiting
                     pthread_exit(NULL);
                 }
-                printf("Resolver %X buffer is %d going to sleep.\n", (int)pthread_self(), arg->buffer->currentPosition);
+                //printf("Resolver %X buffer is %d going to sleep.\n", (int)pthread_self(), arg->buffer->currentPosition);
                 pthread_cond_broadcast(&arg->buffer->isFull);
                 pthread_cond_wait(&arg->buffer->isEmpty, &arg->buffer->buffer_lock);    //buffer is empty release lock and wait for items 
-                printf("Resolver %X has come back from sleep, buffer has %d items\n", (int)pthread_self(), arg->buffer->currentPosition);
+                //printf("Resolver %X has come back from sleep, buffer has %d items\n", (int)pthread_self(), arg->buffer->currentPosition);
             }   
+
             char* domainName;
             arg->buffer->currentPosition--;  
             domainName = arg->buffer->buffer[arg->buffer->currentPosition];  // get the next avaiable item 
@@ -167,11 +169,11 @@ int main(int argc, char* argv[]) {
     char* resolverlog = argv[4];
 
     if (argc < 6 || requesterThreadsCount < 1 || resolverThreadCount < 1) {
-        printf("Not enough command line arguments. Stopping program.\n");
+        //printf("Not enough command line arguments. Stopping program.\n");
         return -1;
     }
     if (requesterThreadsCount > MAX_REQUESTER_THREADS || resolverThreadCount > MAX_RESOLVER_THREADS) {
-        printf("You are requesting to many threads. Stopping program\n");
+        //printf("You are requesting to many threads. Stopping program\n");
         return -1;
     }
 
@@ -187,10 +189,10 @@ int main(int argc, char* argv[]) {
     for (int i = 5; i < argc; i++) {
         file file;
         file.filename = argv[i];
-        printf("File Name: %s\n", file.filename);
         file.serviced = false;
         int isValid = isValidFile(file.filename);
         if (isValid == 1) {  
+            printf("File Name: %s, is valid\n", file.filename);
             fileCount = fileCount + 1;
             input_files->files[input_files->currentFileIndex] = file;
             input_files->currentFileIndex++;

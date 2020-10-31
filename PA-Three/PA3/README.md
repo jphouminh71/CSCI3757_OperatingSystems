@@ -74,14 +74,10 @@
 
 
 # THIS IS THE PROBLEM 
-Something is happening everytime you get to the 18th file to process. You are getting a seg fault.
+For some reason when you do input files 1 - 12 it works
+When you do 13, it never opens up.
 
+Heres what you are gonna try to look at tomorrow
 
-
-
-// this prevents the overloading of buffers
-while (arg->buffer->currentPosition == ARRAY_SIZE) {   // implies that a requestor tried to do its work right after another requestor was signaled and got its buffer filled
-                                pthread_cond_broadcast(&arg->buffer->isEmpty);
-                                pthread_cond_wait(&arg->buffer->isFull, &arg->buffer->buffer_lock);
-                                printf("%X Requestor has come back from sleep. Buffer Position:  %d\n", (int)pthread_self(), arg->buffer->currentPosition);
-                            }
+see how many total input files are passed to the requester
+and see how many input files the requester is actually getting
