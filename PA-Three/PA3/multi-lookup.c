@@ -74,13 +74,16 @@ void* requesterThreads(void * inputFiles){
                             }
                     } 
                 
+
                     int length = strlen(input);
                     if(input[length-1] == '\n'){
                         input[length-1] = 0;
                     }
-            
-                    arg->buffer->buffer[arg->buffer->currentPosition] = input;       // should always start at 0
-                    arg->buffer->currentPosition++;
+
+                    if (strlen(input) < MAX_NAME_LENGTH){
+                        arg->buffer->buffer[arg->buffer->currentPosition] = input;       // should always start at 0
+                        arg->buffer->currentPosition++;
+                    }
                     input = NULL;
             }
             pthread_cond_signal(&arg->buffer->isEmpty);   // once the last of the contents are put into the array signal
