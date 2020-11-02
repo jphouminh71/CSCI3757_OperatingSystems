@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include <stdbool.h>
 #include <sys/time.h>
 
 #define ARRAY_SIZE 20
@@ -25,7 +24,7 @@ int isValidFile(char* filename);
 /* Defining structures so for the thread arguments */
 
 typedef struct {
-    bool serviced;   /* allows requestor threads to determine if the current file has already been processed */
+    int serviced;   /* allows requestor threads to determine if the current file has already been processed */
     char* filename;   /* name of the file, ex. names2.txt */
 } file;
 

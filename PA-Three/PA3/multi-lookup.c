@@ -47,20 +47,20 @@ void* requesterThreads(void * inputFiles){
     requestThreadArg* arg = (requestThreadArg*) inputFiles;
     char* servicetxtfile = arg->servicelog;
 
-    bool canService = true;
+    int canService = 1;
     FILE* currentFile;
     int serviceCount = 0;
 
-    while(canService) {
+    while(canService == 1) {
         int i = 0;
-        canService = false;
+        canService = 0;
 
         // Get into the list of files and look for one to process 
         pthread_mutex_lock(&arg->files->file_lock);  /** Only single requestor thread may search through list of files  */
             for (i = 0; i < arg->files->totalFileCount; i++) {
                 if (!arg->files->files[i].serviced) {   // found and unserviced file, so we grab it 
-                    canService = true;
-                    arg->files->files[i].serviced = true;
+                    canService = 1;
+                    arg->files->files[i].serviced = 1;
                     currentFile = fopen(arg->files->files[i].filename, "r+");
                     //printf("I JUST OPENED UP: %s\n", arg->files->files[i].filename);
                     serviceCount++;
@@ -190,7 +190,7 @@ int main(int argc, char* argv[]) {
     for (int i = 5; i < argc; i++) {
         file file;
         file.filename = argv[i];
-        file.serviced = false;
+        file.serviced = 0;
         int isValid = isValidFile(file.filename);
         if (isValid == 1) {  
             //printf("File Name: %s, is valid\n", file.filename);
