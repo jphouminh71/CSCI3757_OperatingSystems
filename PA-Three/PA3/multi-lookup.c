@@ -104,6 +104,7 @@ void* requesterThreads(void * inputFiles){
         pthread_mutex_unlock(&arg->buffer->buffer_lock);
         fclose(currentFile);
     }
+    pthread_exit(NULL); // should never come here, silencing a warning
  }
 
  void* resolverThreads(void * inputFiles){
@@ -157,7 +158,6 @@ int main(int argc, char* argv[]) {
     char* requesterlog = argv[3];
     char* resolverlog = argv[4];
 
-    printf(">> %d\n", argc);
     if (argc <= 5) {
         fprintf(stderr, "Not enough arguments found. Terminating program \n");
         exit(1);

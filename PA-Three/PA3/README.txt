@@ -1,15 +1,54 @@
+
+# How the Main function runs
+    1. Main checks the parameters to determine if the program was given the correct inputs 
+    2. Thread pools are created and constructs thread parameter arguments
+    3. Requestor threads are instantiated and ran
+    4. Resolver threads are instantiated and ran
+    5. Main waits until all requesters / resolvers have joined
+    6. Total program time is printed
+
+
+# How the requester function works
+    - Each thread will receive a their parameters which include a list of files to process. They will look for a file to process and grab an unprocessed one and mark it as worked on. 
+    The requestor thread will then populate the shared buffer given that there is room in the buffer. If the thread encounters that the buffer is full, it will block and notify resolver
+    threads to empty the contents of the buffer. Will return to execution once resolvers have emptied the buffers. Thread continues to do this until it cannot find any more files to work on.
+    When the thread cannot find any more files to work on it will log how many files it worked on in the shared file 'serviced.txt'
+
+
+
+# how the resolver works
+    - Each resolver thread will recieve their parameters mainly concering the shared buffer. They will be notified to remove from the buffer when there is something in there. They will 
+    pass control back to the requesters once they all empty the buffer completely. As they each grab an item out of the shared buffer they will lookup the ipaddress and handle it 
+    accordingly and log it into the 'results.txt'
+
+
+
+
+
+# File Descriptions 
+    multi-lookup.c  :  provides the implemenations of the actual program
+    multi-lookup.h  :  provides the function signatures and defines the structs that are used to construct the arguments that are passed to both threads. Also defines constants. 
+    performance.txt :  provides simulation results from the 5 test cases given from the guide
+    serviced.txt    :  provides the details of how many files each thread has serviced upon its termination (sequentially)
+    results.txt     :  provides the ip address mapping to the given host name. 
+
+
 # COMPILE / RUN COMMANDS
-    
-    compile: 
-    gcc -o run -pthread  multi-lookup.c util.c
-    run: 
-    ./run 1 1 serviced.txt results.txt names1.txt   , creates a single requestor thread so you have to mock up some data 
+    1. make clean 
+    2. make
+
+    Example input  (./multi-lookup  <requestorCount> <resolverCount> <ServicedOutfile> <ResultsOutfile> <...file inputs...>
+        - ./multi-lookup 3 1 serviced.txt results.txt  input/names1.txt input/names2.txt input/names3.txt input/names4.txt input/names5.txt input/names11.txt input/names12.txt
 
 
 
 
-# AT 10PM: STOP EVERYTHING AND PREPARE IT ALL FOR SUBMISSION
 
+
+
+
+
+            Ignore everything below just personal notes
 
 
 # BUG LIST 
