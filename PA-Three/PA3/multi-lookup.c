@@ -12,9 +12,9 @@ int isValidFile(char *filename){
 }
 
 /** Clears serviced.txt and results.txt */
-void clearLogs(){
-    FILE* serviceFile = fopen("serviced.txt", "w");  
-    FILE* resultsFile = fopen("results.txt", "w");
+void clearLogs(char* service, char* results){
+    FILE* serviceFile = fopen(service, "w");  
+    FILE* resultsFile = fopen(results, "w");
 
     fprintf(serviceFile, "%s", "");
     fprintf(resultsFile, "%s", "");
@@ -131,7 +131,6 @@ void* requesterThreads(void * inputFiles){
 // need to create the .h file because the default make file is looking for it
 // <# requester> <# resolver> <requester log> <resolver log> [ <data file> ... ]
 int main(int argc, char* argv[]) {
-    clearLogs();
     /* timer */
     struct timeval begin, end;
     gettimeofday(&begin, NULL);
@@ -141,6 +140,8 @@ int main(int argc, char* argv[]) {
     int resolverThreadCount = atoi(argv[2]);
     char* requesterlog = argv[3];
     char* resolverlog = argv[4];
+
+    clearLogs(requesterlog, resolverlog);
 
     if (argc < 6 || requesterThreadsCount < 1 || resolverThreadCount < 1) {
         //printf("Not enough command line arguments. Stopping program.\n");
