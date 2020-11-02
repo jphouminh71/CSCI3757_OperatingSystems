@@ -19,12 +19,12 @@ int clearLogs(char* service, char* results){
 
     /* failed to open output paths */
     if (serviceFile == NULL) {
-        printf(stderr, "Bogus output file path: %s\n", serviceFile);
+        fprintf(stderr, "Bogus output file path: %s\n", service);
         return -1;
     }
 
     if (results == NULL) {
-        printf(stderr, "Bogus output file path: %s\n", results);
+        fprintf(stderr, "Bogus output file path: %s\n", results);
         return -1;
     }
 
@@ -132,6 +132,7 @@ void* requesterThreads(void * inputFiles){
         // writing the value to results.txt
         pthread_mutex_lock(&arg->results_lock);
             if (dnslookup(domainName, ipString, INET_ADDRSTRLEN) == UTIL_FAILURE ) {
+                    fprintf(stderr, "Bogus hostname: %s\n", domainName);
                     fprintf(results,"%s,\n", domainName);
             }
             else {
@@ -156,21 +157,27 @@ int main(int argc, char* argv[]) {
     char* requesterlog = argv[3];
     char* resolverlog = argv[4];
 
+    printf(">> %d\n", argc);
+    if (argc <= 5) {
+        fprintf(stderr, "Not enough arguments found. Terminating program \n");
+        exit(1);
+    }
+
     int ret = clearLogs(requesterlog, resolverlog);
-    if (ret == -1){     // bad output file path
+    if (ret == -1){     /** Bad output file path */
         exit(0);
     }
 
     if (argc < 6 || requesterThreadsCount < 1 || resolverThreadCount < 1) {
-        printf(stderr, "Not enough command line arguments. Stopping program.\n");
+        fprintf(stderr, "Not enough command line arguments. Stopping program.\n");
         return -1;
     }
     if (requesterThreadsCount > MAX_REQUESTER_THREADS || resolverThreadCount > MAX_RESOLVER_THREADS) {
-        printf(stderr, "You are requesting to many threads. Stopping program\n");
+        fprintf(stderr, "You are requesting to many threads. Stopping program\n");
         return -1;
     }
 
-    /** Array of threads*/
+    /** Array of threads */
     pthread_t reqWorkers [requesterThreadsCount];
     pthread_t resWorkers [resolverThreadCount];
 
@@ -191,6 +198,11 @@ int main(int argc, char* argv[]) {
         }
     }
     input_files->totalFileCount = fileCount; 
+
+    if (fileCount <= 0) {
+        fprintf(stderr, "No input files found, terminating program.\n");
+        exit(1);
+    }
 
     pthread_mutex_init(&input_files->file_lock, NULL);
     
@@ -222,7 +234,7 @@ int main(int argc, char* argv[]) {
 
     /** start the threads */
 
-    if (fileCount > 0 && fileCount >= MAX_INPUT_FILES){
+    if (fileCount >= 0){
         for (int i = 0; i < requesterThreadsCount; i++) {
             pthread_create(&reqWorkers[i],NULL,requesterThreads, &requester);
         }
