@@ -22,6 +22,11 @@
     accordingly and log it into the 'results.txt'
 
 
+# High level of how the requestors and resolvers work together
+    - When empty, requestors will all work together and fill the buffer. Then notify the
+    resolvers that they need to empty it. Then all the resolvers will work together 
+    and empty the buffer, then pass control back to the requestors.
+
 
 
 
