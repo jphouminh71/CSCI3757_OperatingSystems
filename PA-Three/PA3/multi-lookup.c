@@ -63,6 +63,7 @@ void* requesterThreads(void * inputFiles){
                 else if (i == arg->files->totalFileCount-1) {    
                     pthread_mutex_lock(&arg->service_lock); // write out to the serviced.txt
                         FILE* serviceFile = fopen(servicetxtfile, "a"); 
+                        printf("Thread %X serviced %d, files. \n", (int)pthread_self(), serviceCount);
                         fprintf(serviceFile, "Thread %X serviced %d files.\n", (int)pthread_self(), serviceCount);
                         fclose(serviceFile);
                         arg->buffer->threadsFinished++;     /** need this to know when resolvers should end */
@@ -248,6 +249,7 @@ int main(int argc, char* argv[]) {
     pthread_cond_destroy(&shared->isEmpty);
     pthread_cond_destroy(&shared->isFull);
     free(shared); 
+    free(input_files);
 
     /** stop the time tracker */
     gettimeofday(&end, NULL);

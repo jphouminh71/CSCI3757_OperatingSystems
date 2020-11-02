@@ -1,0 +1,33 @@
+Requester thread count 1
+Resolver thread count 1
+Thread 90BB2700 serviced 30, files. 
+./multi-lookup: total time is 127.103221 seconds
+
+Requester thread count 1
+Resolver thread count 3
+Thread B7C05700 serviced 30, files. 
+./multi-lookup: total time is 66.657557 seconds
+
+Requester thread count 3
+Resolver thread count 1
+Thread 6261B700 serviced 9, files. 
+Thread 6B61D700 serviced 11, files. 
+Thread 6AE1C700 serviced 10, files. 
+./multi-lookup: total time is 127.872730 seconds
+
+
+Requester thread count 3
+Resolver thread count 3
+Thread C0884700 serviced 9, files. 
+Thread C1886700 serviced 11, files. 
+Thread C1085700 serviced 10, files. 
+./multi-lookup: total time is 60.902164 seconds
+
+Requester thread count 5
+Resolver thread count 5
+Thread F1D35700 serviced 6, files. 
+Thread F0D33700 serviced 5, files. 
+Thread F1534700 serviced 6, files. 
+Thread F2D37700 serviced 7, files. 
+Thread F2536700 serviced 6, files. 
+./multi-lookup: total time is 24.056724 seconds
