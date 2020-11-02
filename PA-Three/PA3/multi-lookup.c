@@ -62,7 +62,7 @@ void* requesterThreads(void * inputFiles){
                     canService = true;
                     arg->files->files[i].serviced = true;
                     currentFile = fopen(arg->files->files[i].filename, "r+");
-                    printf("I JUST OPENED UP: %s\n", arg->files->files[i].filename);
+                    //printf("I JUST OPENED UP: %s\n", arg->files->files[i].filename);
                     serviceCount++;
                     break;  // go and work on this file 
                 }
@@ -94,7 +94,7 @@ void* requesterThreads(void * inputFiles){
                                 //printf("AM I THE LAS THING\n");
                                 pthread_cond_broadcast(&arg->buffer->isEmpty);
                                 pthread_cond_wait(&arg->buffer->isFull, &arg->buffer->buffer_lock);
-                                printf("%X Requestor has come back from sleep. Buffer Position:  %d\n", (int)pthread_self(), arg->buffer->currentPosition);
+                                //printf("%X Requestor has come back from sleep. Buffer Position:  %d\n", (int)pthread_self(), arg->buffer->currentPosition);
                             }
                     } 
                 
@@ -183,7 +183,8 @@ int main(int argc, char* argv[]) {
 
     /** Initializing the inputFiles struct */
     inputFiles* input_files;  
-    input_files = malloc(sizeof(*input_files) + sizeof(file**) * argc-5);
+    //input_files = malloc(sizeof(*input_files) + sizeof(file*) * argc-5);
+    input_files = malloc(sizeof(file)*argc-5);
     input_files->currentFileIndex = 0;
     int fileCount = 0;
     for (int i = 5; i < argc; i++) {
@@ -192,7 +193,7 @@ int main(int argc, char* argv[]) {
         file.serviced = false;
         int isValid = isValidFile(file.filename);
         if (isValid == 1) {  
-            printf("File Name: %s, is valid\n", file.filename);
+            //printf("File Name: %s, is valid\n", file.filename);
             fileCount = fileCount + 1;
             input_files->files[input_files->currentFileIndex] = file;
             input_files->currentFileIndex++;

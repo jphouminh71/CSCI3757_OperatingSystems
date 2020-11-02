@@ -6,6 +6,12 @@
     ./run 1 1 serviced.txt results.txt names1.txt   , creates a single requestor thread so you have to mock up some data 
 
 
+
+
+# AT 10PM: STOP EVERYTHING AND PREPARE IT ALL FOR SUBMISSION
+
+
+
 # BUG LIST 
     * When you are given a bunch of bogus filenames, the programs freezes. FIXED
     * Segfault when number of requestor threads is >= resolver threads. 

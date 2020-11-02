@@ -29,7 +29,7 @@ typedef struct {
     char* filename;   /* name of the file, ex. names2.txt */
 } file;
 
-typedef struct {         
+typedef struct inputFiles {         
     int currentFileIndex;            /* The most recent file thats been grabbed by a thread */
     int totalFileCount;              /* threads will loop through all til all files */
     pthread_mutex_t file_lock;  /* Requesters use this to take turns grabbing from the array of file names, grab one by one */
@@ -38,7 +38,7 @@ typedef struct {
 
 
 /* shared buffer between requester and resolver */
-typedef struct {
+typedef struct sharedBuffer {
     int threadCount;                /* The total amount of threads that started, need this to tell resolvers to exit */
     int threadsFinished;            /* The amount of requestor threads that have finished */
     pthread_cond_t isFull;          /* Should make requesters block */
@@ -50,7 +50,7 @@ typedef struct {
 
 
 /* Requester Thread Arguments */
-typedef struct {
+typedef struct requestThreadArg {
     pthread_mutex_t service_lock;   /* Lock that the requester threads need to be able to write to serviced.txt safely */
     char* servicelog;               /* The service log that thread will append too */
     inputFiles* files;              /* pointer to the inputFiles struct */
@@ -60,7 +60,7 @@ typedef struct {
 
 
 /* Resolver Thread Arguments */
-typedef struct {
+typedef struct resolverThreadArg {
     pthread_mutex_t results_lock;  /* Lock that resolver threads need to be able to write to resolver.txt safely */
     char  *resultslog;              /* filename for resolver.txt */
     sharedBuffer *buffer;          /* pointer to the sharedBuffer struct */ 
