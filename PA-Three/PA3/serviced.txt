@@ -1,5 +1,5 @@
-Thread 6822700 serviced 13 files.
-Thread 8025700 serviced 5 files.
-Thread 7824700 serviced 4 files.
-Thread 6021700 serviced 3 files.
 Thread 7023700 serviced 5 files.
+Thread 6021700 serviced 6 files.
+Thread 6822700 serviced 6 files.
+Thread 7824700 serviced 7 files.
+Thread 8025700 serviced 6 files.
