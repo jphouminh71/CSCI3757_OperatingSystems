@@ -16,7 +16,7 @@
 #define MAX_NAME_LENGTH 1025
 
 int isValidFile(char *filename);
-void clearLogs();
+int clearLogs();
 void *requesterThreads(void * inputFiles);
 void *resolverThreads(void * inputFiles);
 int isValidFile(char* filename);

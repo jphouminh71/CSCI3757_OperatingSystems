@@ -5,6 +5,7 @@
 int isValidFile(char *filename){
     FILE *fptr = fopen(filename, "r");
     if (fptr == NULL || strlen(filename) <= 6){    // the 'i' is if they did something like /run ... /input  input/names1.txt
+        fprintf(stderr, "Bogus file name %s \n", filename);
         return -1;
     }
     fclose(fptr);
@@ -12,15 +13,27 @@ int isValidFile(char *filename){
 }
 
 /** Clears serviced.txt and results.txt */
-void clearLogs(char* service, char* results){
+int clearLogs(char* service, char* results){
     FILE* serviceFile = fopen(service, "w");  
     FILE* resultsFile = fopen(results, "w");
+
+    /* failed to open output paths */
+    if (serviceFile == NULL) {
+        printf(stderr, "Bogus output file path: %s\n", serviceFile);
+        return -1;
+    }
+
+    if (results == NULL) {
+        printf(stderr, "Bogus output file path: %s\n", results);
+        return -1;
+    }
 
     fprintf(serviceFile, "%s", "");
     fprintf(resultsFile, "%s", "");
 
     fclose(serviceFile);
     fclose(resultsFile);
+    return 1;
 }
 
 void* requesterThreads(void * inputFiles){
@@ -142,14 +155,17 @@ int main(int argc, char* argv[]) {
     char* requesterlog = argv[3];
     char* resolverlog = argv[4];
 
-    clearLogs(requesterlog, resolverlog);
+    int ret = clearLogs(requesterlog, resolverlog);
+    if (ret == -1){     // bad output file path
+        exit(0);
+    }
 
     if (argc < 6 || requesterThreadsCount < 1 || resolverThreadCount < 1) {
-        //printf("Not enough command line arguments. Stopping program.\n");
+        printf(stderr, "Not enough command line arguments. Stopping program.\n");
         return -1;
     }
     if (requesterThreadsCount > MAX_REQUESTER_THREADS || resolverThreadCount > MAX_RESOLVER_THREADS) {
-        //printf("You are requesting to many threads. Stopping program\n");
+        printf(stderr, "You are requesting to many threads. Stopping program\n");
         return -1;
     }
 
@@ -204,24 +220,24 @@ int main(int argc, char* argv[]) {
     printf("Resolver thread count %d\n", resolverThreadCount);
 
     /** start the threads */
-    for (int i = 0; i < requesterThreadsCount; i++) {
-        pthread_create(&reqWorkers[i],NULL,requesterThreads, &requester);
-    }
-    
-    for (int k = 0; k < resolverThreadCount; k++) {
-        pthread_create(&resWorkers[k],NULL,resolverThreads, &resolver);
-    }
-    
-    
 
-    /** Wait for the threads to finish */
-    for (int j = 0; j < requesterThreadsCount; j++) {
-        pthread_join(reqWorkers[j],NULL);
-    }
-    
-    
-    for (int f = 0; f < resolverThreadCount; f++) {
-        pthread_join(resWorkers[f],NULL);
+    if (fileCount > 0 && fileCount >= MAX_INPUT_FILES){
+        for (int i = 0; i < requesterThreadsCount; i++) {
+            pthread_create(&reqWorkers[i],NULL,requesterThreads, &requester);
+        }
+        
+        for (int k = 0; k < resolverThreadCount; k++) {
+            pthread_create(&resWorkers[k],NULL,resolverThreads, &resolver);
+        }
+        /** Wait for the threads to finish */
+        for (int j = 0; j < requesterThreadsCount; j++) {
+            pthread_join(reqWorkers[j],NULL);
+        }
+        
+        
+        for (int f = 0; f < resolverThreadCount; f++) {
+            pthread_join(resWorkers[f],NULL);
+        }
     }
     
     /** Cleanup all the memory you created */
@@ -239,5 +255,5 @@ int main(int argc, char* argv[]) {
     printf("./multi-lookup: total time is %f seconds\n", seconds);
 
     /** exit the program */
-    return 1;
+    exit(1);
 }

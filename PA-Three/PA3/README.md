@@ -13,6 +13,12 @@
 
 
 # BUG LIST 
+
+    * when you have zero input files, the program segfaults
+
+
+
+                Resolved bugs
     * When you are given a bunch of bogus filenames, the programs freezes. FIXED
     * Segfault when number of requestor threads is >= resolver threads. 
         - signal vs broadcast?
