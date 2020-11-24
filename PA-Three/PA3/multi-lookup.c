@@ -1,30 +1,20 @@
 #include "multi-lookup.h"
 
- /** attaches extension for filepath */
- char* getExtension(char *filename) {
-    char* extension = "input/";
-    char* newPath = malloc(strlen(filename)+1+6); 
-    strcpy(newPath, extension); /* copy name into the new var */
-    strcat(newPath, filename); /* add the extension */
-    return newPath; 
- }
 
 /** checks for valid file name input */
 int isValidFile(char *filename){
-    char* newPath = getExtension(filename);
-    FILE *fptr = fopen(newPath, "r");
-    if (fptr == NULL){
+    FILE *fptr = fopen(filename, "r");
+    if (fptr == NULL || strlen(filename) <= 6){    // the 'i' is if they did something like /run ... /input  input/names1.txt
         return -1;
     }
-    free(newPath);
     fclose(fptr);
     return 1;
 }
 
 /** Clears serviced.txt and results.txt */
-void clearLogs(){
-    FILE* serviceFile = fopen("serviced.txt", "w");  
-    FILE* resultsFile = fopen("results.txt", "w");
+void clearLogs(char* service, char* results){
+    FILE* serviceFile = fopen(service, "w");  
+    FILE* resultsFile = fopen(results, "w");
 
     fprintf(serviceFile, "%s", "");
     fprintf(resultsFile, "%s", "");
@@ -33,103 +23,70 @@ void clearLogs(){
     fclose(resultsFile);
 }
 
-void testDNS() {
-
-    /* FOR RIGHT NOW ONLY, just create dummy test strings so you can figure out how to the dns function */
-    char* testString1 = "facebook.com";
-    char* testString2 = "youtube.com";
-    char* testString3 = "yahoo.com";
-    char* ipString = malloc(sizeof(char) * INET_ADDRSTRLEN);
-
-    // grab an item from the shared array then do this 
-    if (dnslookup(testString1, ipString, INET_ADDRSTRLEN) == UTIL_FAILURE ) {
-        // we take the domain name we couldn't find and change ipString to the domain name + ','
-    }
-
-    printf("IPSTRING: %s\n", ipString);  // should print out the generated ip string
-
-    free(ipString);
-}
-
 void* requesterThreads(void * inputFiles){
     requestThreadArg* arg = (requestThreadArg*) inputFiles;
     char* servicetxtfile = arg->servicelog;
-    FILE* serviceFile = fopen(servicetxtfile, "a"); 
 
-    bool canService = true;
+    int canService = 1;
     FILE* currentFile;
-    char buff[MAX_NAME_LENGTH];
     int serviceCount = 0;
 
-    while(canService) {
+    while(canService == 1) {
         int i = 0;
-        canService = false;
+        canService = 0;
 
-        // Get into the list of files and look for one to process 
+        /** Get into the list of files and look for one to process */ 
         pthread_mutex_lock(&arg->files->file_lock);  /** Only single requestor thread may search through list of files  */
             for (i = 0; i < arg->files->totalFileCount; i++) {
                 if (!arg->files->files[i].serviced) {   // found and unserviced file, so we grab it 
-                    canService = true;
-                    arg->files->files[i].serviced = true;
-                    currentFile = fopen(getExtension(arg->files->files[i].filename), "r+");
+                    canService = 1;
+                    arg->files->files[i].serviced = 1;
+                    currentFile = fopen(arg->files->files[i].filename, "r+");
                     serviceCount++;
-                    printf("%X IS WORKING ON > %s\n", (int)pthread_self() ,arg->files->files[i].filename);
                     break;  // go and work on this file 
                 }
-                else if (i == arg->files->totalFileCount-1 && canService == false && serviceCount == 0) {   // for threads that couldn't find anything to service
-                    // By this point, you should have put every domain name in the file and you are just doing the printing
-                    //printf("I have completed my work and about to signal requester\n");
-                    //pthread_cond_broadcast(&arg->buffer->isEmpty);
-                    pthread_mutex_lock(&arg->service_lock);
-                        //printf("Thread %X serviced %d files.\n", (int)pthread_self(), serviceCount);
+
+                /** If thread cannot find anything to work on then it will terminate */
+                else if (i == arg->files->totalFileCount-1) {    
+                    pthread_mutex_lock(&arg->service_lock); /** write out to the serviced.txt */
+                        FILE* serviceFile = fopen(servicetxtfile, "a"); 
+                        printf("Thread %X serviced %d files.\n", (int)pthread_self(), serviceCount);
                         fprintf(serviceFile, "Thread %X serviced %d files.\n", (int)pthread_self(), serviceCount);
+                        fclose(serviceFile);
+                        arg->buffer->threadsFinished++;     /** need this to know when resolvers should end */
+                        pthread_cond_broadcast(&arg->buffer->isEmpty); 
                     pthread_mutex_unlock(&arg->service_lock);
-                    arg->buffer->threadsFinished++;     /** need this to know when resolvers should end */ 
-                    fclose(serviceFile);
-                    pthread_mutex_unlock(&arg->files->file_lock);
-                    pthread_exit(NULL);
-                }
-                else if (i == arg->files->totalFileCount-1 && canService == false) {                    // for threads that had items to service and filled buffer with remaining item
-                    // By this point, you should have put every domain name in the file and you are just doing the printing
-                    //printf("I have completed my work and about to signal requester\n");
-                    pthread_cond_broadcast(&arg->buffer->isEmpty);
-                    pthread_mutex_lock(&arg->service_lock);
-                        //printf("Thread %X serviced %d files.\n", (int)pthread_self(), serviceCount);
-                        fprintf(serviceFile, "Thread %X serviced %d files.\n", (int)pthread_self(), serviceCount);
-                    pthread_mutex_unlock(&arg->service_lock);
-                    arg->buffer->threadsFinished++;     /** need this to know when resolvers should end */ 
-                    fclose(serviceFile);
                     pthread_mutex_unlock(&arg->files->file_lock);
                     pthread_exit(NULL);
                 }
             }
         pthread_mutex_unlock(&arg->files->file_lock);
-
-        if (!canService) { break; } /** if thread can't find anything to service then exit */
-
-        int currentLine = 0;
         char* input;
         size_t len = 0;
-        while(getline(&input, &len, currentFile) != -1){
-            pthread_mutex_lock(&arg->buffer->buffer_lock);          // Try to get into the buffer , blocks if you cant 
-                if (arg->buffer->currentPosition == ARRAY_SIZE) {   // if it ends up getting filled up
-                    pthread_cond_signal(&arg->buffer->isEmpty);
-                    pthread_cond_wait(&arg->buffer->isFull, &arg->buffer->buffer_lock);
-                    //printf("Counter after wait: %d\n", arg->buffer->currentPosition);       // this should always be 0, they are only signaled to work when array gets emptied
-                }
-                currentLine++;
+        pthread_mutex_lock(&arg->buffer->buffer_lock);          // Try to get into the buffer , blocks if you cant
+            while(getline(&input, &len, currentFile) != -1){
+                    if (arg->buffer->currentPosition == ARRAY_SIZE) {   // if it ends up getting filled up
+                            pthread_cond_signal(&arg->buffer->isEmpty);
+                            pthread_cond_wait(&arg->buffer->isFull, &arg->buffer->buffer_lock);     // at this stage, resolvers should ALWAYS be the next to the lock
+
+                            while (arg->buffer->currentPosition == ARRAY_SIZE) {   // implies that a requestor tried to do its work right after another requestor just put something in upon signaled from condition variable above
+                                //printf("AM I THE LAS THING\n");
+                                pthread_cond_signal(&arg->buffer->isEmpty);
+                                pthread_cond_wait(&arg->buffer->isFull, &arg->buffer->buffer_lock);
+                            }
+                    } 
                 
-                int length = strlen(input);
-                if(input[length-1] == '\n'){
-                    input[length-1] = 0;
-                }
-        
-                printf("Line Aquired: %s\n", input);
-                arg->buffer->buffer[arg->buffer->currentPosition] = input;       // should always start at 0
-                arg->buffer->currentPosition++;
-                input = NULL;
-            pthread_mutex_unlock(&arg->buffer->buffer_lock);
-        }
+                    int length = strlen(input);
+                    if(input[length-1] == '\n'){
+                        input[length-1] = 0;
+                    }
+            
+                    arg->buffer->buffer[arg->buffer->currentPosition] = input;       // should always start at 0
+                    arg->buffer->currentPosition++;
+                    input = NULL;
+            }
+            pthread_cond_signal(&arg->buffer->isEmpty);   // once the last of the contents are put into the array signal
+        pthread_mutex_unlock(&arg->buffer->buffer_lock);
         fclose(currentFile);
     }
  }
@@ -140,40 +97,33 @@ void* requesterThreads(void * inputFiles){
     FILE* results = fopen(resultstxtfile, "a"); 
     char* ipString = malloc(sizeof(char) * INET_ADDRSTRLEN);
     
-    while (1) {
+    while (1) {             
         // Get into the buffer and try to grab something 
         pthread_mutex_lock(&arg->buffer->buffer_lock);
-            if (arg->buffer->currentPosition <= 0) {   
-                if (arg->buffer->threadsFinished == arg->buffer->threadCount) {
-                    //printf("Resolver thread is exiting. \n");
-                    pthread_mutex_unlock(&arg->buffer->buffer_lock);        // release the lock before exiting
+            if (arg->buffer->currentPosition == 0) {                            // only signal requestors once buffer gets emptied 
+                if (arg->buffer->threadsFinished == arg->buffer->threadCount) { // keep all resolver threads alive until the last requestor thread 
+                    pthread_mutex_unlock(&arg->buffer->buffer_lock);            // release the lock before exiting
                     pthread_exit(NULL);
                 }
-                //printf("Array Empty: Resolver going to sleep\n");
                 pthread_cond_signal(&arg->buffer->isFull);
                 pthread_cond_wait(&arg->buffer->isEmpty, &arg->buffer->buffer_lock);    //buffer is empty release lock and wait for items 
-                //printf("Resolver has come back from sleep\n");
-                //printf("Resolver: Buffer has %d items.\n", arg->buffer->currentPosition);
             }   
+
             char* domainName;
             arg->buffer->currentPosition--;  
             domainName = arg->buffer->buffer[arg->buffer->currentPosition];  // get the next avaiable item 
         pthread_mutex_unlock(&arg->buffer->buffer_lock);
 
-        // by this point you should have access to whatever you needed out of the buffer 
         // writing the value to results.txt
         pthread_mutex_lock(&arg->results_lock);
             if (dnslookup(domainName, ipString, INET_ADDRSTRLEN) == UTIL_FAILURE ) {
-                    //printf("%s,\n", domainName);
                     fprintf(results,"%s,\n", domainName);
             }
             else {
-                //printf("%s,%s\n", domainName, ipString);
                 fprintf(results,"%s,%s\n", domainName, ipString);
             }
         pthread_mutex_unlock(&arg->results_lock);
     }
-    free(ipString);
     fclose(results);
     pthread_exit(NULL);
  }
@@ -181,7 +131,6 @@ void* requesterThreads(void * inputFiles){
 // need to create the .h file because the default make file is looking for it
 // <# requester> <# resolver> <requester log> <resolver log> [ <data file> ... ]
 int main(int argc, char* argv[]) {
-    clearLogs();
     /* timer */
     struct timeval begin, end;
     gettimeofday(&begin, NULL);
@@ -192,12 +141,14 @@ int main(int argc, char* argv[]) {
     char* requesterlog = argv[3];
     char* resolverlog = argv[4];
 
+    clearLogs(requesterlog, resolverlog);
+
     if (argc < 6 || requesterThreadsCount < 1 || resolverThreadCount < 1) {
-        printf("Not enough command line arguments. Stopping program.\n");
+        //printf("Not enough command line arguments. Stopping program.\n");
         return -1;
     }
     if (requesterThreadsCount > MAX_REQUESTER_THREADS || resolverThreadCount > MAX_RESOLVER_THREADS) {
-        printf("You are requesting to many threads. Stopping program\n");
+        //printf("You are requesting to many threads. Stopping program\n");
         return -1;
     }
 
@@ -207,14 +158,13 @@ int main(int argc, char* argv[]) {
 
     /** Initializing the inputFiles struct */
     inputFiles* input_files;  
-    input_files = malloc(sizeof(*input_files) + sizeof(file**) * argc-5);
+    input_files = malloc(sizeof(file)*argc-5);
     input_files->currentFileIndex = 0;
     int fileCount = 0;
     for (int i = 5; i < argc; i++) {
         file file;
         file.filename = argv[i];
-        printf("File Name: %s\n", file.filename);
-        file.serviced = false;
+        file.serviced = 0;
         int isValid = isValidFile(file.filename);
         if (isValid == 1) {  
             fileCount = fileCount + 1;
@@ -273,7 +223,6 @@ int main(int argc, char* argv[]) {
         pthread_join(resWorkers[f],NULL);
     }
     
-    
     /** Cleanup all the memory you created */
     pthread_mutex_destroy(&shared->buffer_lock);
     pthread_mutex_destroy(&input_files->file_lock);
@@ -281,8 +230,10 @@ int main(int argc, char* argv[]) {
     pthread_mutex_destroy(&requester.service_lock);
     pthread_cond_destroy(&shared->isEmpty);
     pthread_cond_destroy(&shared->isFull);
+    free(shared); 
     free(input_files);
-    free(shared);
+    free(reqWorkers);
+    free(resWorkers);
 
     /** stop the time tracker */
     gettimeofday(&end, NULL);
@@ -290,5 +241,5 @@ int main(int argc, char* argv[]) {
     printf("./multi-lookup: total time is %f seconds\n", seconds);
 
     /** exit the program */
-    exit(0);
+    return 1;
 }

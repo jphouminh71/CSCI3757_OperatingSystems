@@ -7,6 +7,38 @@
 
 
 
+
+# AT 10PM: STOP EVERYTHING AND PREPARE IT ALL FOR SUBMISSION
+
+
+
+# BUG LIST 
+    * When you are given a bunch of bogus filenames, the programs freezes. FIXED
+    * Segfault when number of requestor threads is >= resolver threads. 
+        - signal vs broadcast?
+        - find where you are accessing the buffer and print out the values of what the buffer index is. 
+
+        1. Go uncomment all the file closes
+        2. If you end up figuring this out at the end, try to free up memory.
+
+    * The service file is is an abitrary string, its not just serviced.txt or results.txt
+
+
+    * What you think the problem is.
+        1. When a requestors fills in the buffer with 20 items, it will release the lock and block. The mutex is now unlocked and you expect a resolver to come and pick it up
+        2. What is happening in certain cases is that once a requester unlocks the lock, another requestor obtains access to the lock, but shouldn't it recognize that the array is already filled even if it does get the lock? 
+
+
+
+# ERROR HANDLING
+    * When you get a bogus host name, print out a message to stderr saying that you got a bogus hostname
+        - Do the same for bogus output / input file path 
+    
+    * have to catch all potential system call errors and direct them to stderr.
+
+
+
+
 # Personal Notes
     * mutexes block if calling threads can't get the thread
     * use mutexes to ensure mutual exclusion when accessing shared resources
@@ -47,4 +79,11 @@
 
 
 
-# ASK AT OFFICE HOURS
+# THIS IS THE PROBLEM 
+For some reason when you do input files 1 - 12 it works
+When you do 13, it never opens up.
+
+Heres what you are gonna try to look at tomorrow
+
+see how many total input files are passed to the requester
+and see how many input files the requester is actually getting
