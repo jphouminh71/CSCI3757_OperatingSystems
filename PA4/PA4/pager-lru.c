@@ -55,11 +55,11 @@ void pageit(Pentry q[MAXPROCESSES]) {
             page = pc/PAGESIZE; 		// page the program counter needs
             timestamps[proc][page] = tick;            // update timestamp for the current page 
 
-            /* Is page swaped-out? */
+            // if the that current index is unallocated or the page is already in there 
             if(!q[proc].pages[page]) {
-                /* Try to swap in */
-                printf("HELLO");
-                if(!pagein(proc,page)) {
+
+                // if page the program counter is pointing too isn't paged in 
+                if(!pagein(proc,page)) {  // if the page I want isn't paged into the frames 
                      
                     /* LRU algorithm, look back at the processes and look for the one with the most ticks 
                         * Follows the idea of local replacement
@@ -68,23 +68,23 @@ void pageit(Pentry q[MAXPROCESSES]) {
                            should be the one with the timestamp greater than the current page we are trying to swap
                     */
 
-                   printf("HELLO");
+                   // @ 22 page , tick 22
+                   // maxtime = 22
+                   // 22 % 20 == 2 <-- the index of the previous oldest page.
                    int maxTime = timestamps[proc][page];
-                   int pageToSwap = MAXPROCPAGES; // start at the end and going to loop through it 
+                   int pageToSwap = timestamps[proc][page]%20;  // only looking at the pages since we introduced the next process 
                    
-
                     // look through for a page that has an older time 
                     for(oldpage=pageToSwap; oldpage > 0; oldpage--) {
-                        if(timestamps[proc][oldpage] > maxTime) {
-                            maxTime = timestamps[proc][oldpage];
-                            pageToSwap = oldpage;
+
+                        if (q[proc].pages[oldpage] && timestamps[proc][oldpage] > maxTime ){
+                                maxTime = timestamps[proc][oldpage];
+                                pageToSwap = oldpage;
                         }
                     }
                     pageout(proc, pageToSwap);
                 }
             }
-            /* Break loop after finding first active process */
-            break;
         }
     } 
     
