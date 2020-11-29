@@ -17,7 +17,6 @@
 #include <stdlib.h>
 
 #include "simulator.h"
-
 void pageit(Pentry q[MAXPROCESSES]) { 
     /* This file contains the stub for an LRU pager */
     /* You may need to add/remove/modify any part of this file */
@@ -45,7 +44,16 @@ void pageit(Pentry q[MAXPROCESSES]) {
     int proc;
     int pc;
     int page;
-    int oldpage; 
+    int oldpage;
+
+
+    
+    /* LRU algorithm, look back at the processes and look for the one with the most ticks 
+        * Follows the idea of local replacement
+        * Looks through current processes available pages and checks if they are swapped in
+        * Looks for that set of pages timestamps and look for the least recently used, 
+            should be the one with the timestamp greater than the current page we are trying to swap
+    */
     
     for(proc=0; proc<MAXPROCESSES; proc++) { 
         /* Is process active? */
@@ -60,19 +68,12 @@ void pageit(Pentry q[MAXPROCESSES]) {
 
                 // if page the program counter is pointing too isn't paged in 
                 if(!pagein(proc,page)) {  // if the page I want isn't paged into the frames 
-                     
-                    /* LRU algorithm, look back at the processes and look for the one with the most ticks 
-                        * Follows the idea of local replacement
-                        * Looks through current processes available pages and checks if they are swapped in
-                        * Looks for that set of pages timestamps and look for the least recently used, 
-                           should be the one with the timestamp greater than the current page we are trying to swap
-                    */
-
-                   // @ 22 page , tick 22
-                   // maxtime = 22
-                   // 22 % 20 == 2 <-- the index of the previous oldest page.
+                
                    int maxTime = timestamps[proc][page];
-                   int pageToSwap = timestamps[proc][page]%20;  // only looking at the pages since we introduced the next process 
+                   int pageToSwap = timestamps[proc][page]%MAXPROCPAGES;  // indexes into the oldest page based on the 'tick', @22ticks means that index 2 is the oldest page
+                //    printf(">> %d\n", maxTime);
+                //    printf(">> %d\n", pageToSwap);
+                //    printf("PAGE TO SWAP %d\n", pageToSwap);
                    
                     // look through for a page that has an older time 
                     for(oldpage=pageToSwap; oldpage > 0; oldpage--) {
@@ -83,6 +84,7 @@ void pageit(Pentry q[MAXPROCESSES]) {
                         }
                     }
                     pageout(proc, pageToSwap);
+                    //printf("-------\n");
                 }
             }
         }
