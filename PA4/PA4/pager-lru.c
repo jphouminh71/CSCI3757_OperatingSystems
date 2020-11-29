@@ -25,6 +25,7 @@ void pageit(Pentry q[MAXPROCESSES]) {
     static int initialized = 0;
     static int tick = 1; // artificial time
     static int timestamps[MAXPROCESSES][MAXPROCPAGES];
+    static int previousPage = -1;
 
     /* Local vars */
     int proctmp;
@@ -55,13 +56,25 @@ void pageit(Pentry q[MAXPROCESSES]) {
             should be the one with the timestamp greater than the current page we are trying to swap
     */
     
-    for(proc=0; proc<MAXPROCESSES; proc++) { 
+    for(proc=0; proc<MAXPROCESSES; proc++) {      // change 20 back to MAXPROCESSES 
         /* Is process active? */
         if(q[proc].active) {
             /* Dedicate all work to first active process*/ 
             pc = q[proc].pc; 		        // program counter for process
             page = pc/PAGESIZE; 		// page the program counter needs
-            timestamps[proc][page] = tick;            // update timestamp for the current page 
+            timestamps[proc][page] = tick;            // update timestamp for the current page
+
+            /* Printing out the contents of this process to try to determing what kind of process it is */
+            /* only print this page depending on if a new page if its not the previous page */
+            /* try to only track one process at at a time*/
+            if (proc == 4 && previousPage != page){ // figure out what process 0 is
+                previousPage = page; 
+                printf("---------\n");
+                printf("PROC: %d\n", proc);
+                printf("PC: %d\n", pc);
+                printf("Wanted PAGE: %d\n", page);
+                printf("---------\n");
+            }
 
             // if the that current index is unallocated or the page is already in there 
             if(!q[proc].pages[page]) {

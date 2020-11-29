@@ -1,0 +1,78 @@
+Trying to collect some data to look for some patters, ran with ./test-lru -seed 512 to keep the output consistent between tests
+    * notes for when reading the graphs. The first iteration should always will look different from the rest of them because as the pages it needs gets accessed, they 
+    are already pre-paged in so you shouldn't see the swap time between them. 
+
+                                                                Process 0: Double For loop
+                                    - accessed 9 total pages [0-8]
+                                    - repeatedly accessed them sequentially 
+---------
+PROC: 0
+PC: 0
+Wanted PAGE: 0
+---------
+---------
+PROC: 0
+PC: 128
+Wanted PAGE: 1
+---------
+---------
+PROC: 0
+PC: 256
+Wanted PAGE: 2
+---------
+---------
+PROC: 0
+PC: 384
+Wanted PAGE: 3
+---------
+---------
+PROC: 0
+PC: 512
+Wanted PAGE: 4
+---------
+---------
+PROC: 0
+PC: 640
+Wanted PAGE: 5
+---------
+---------
+PROC: 0
+PC: 768
+Wanted PAGE: 6
+---------
+---------
+PROC: 0
+PC: 896
+Wanted PAGE: 7
+---------
+---------
+PROC: 0
+PC: 1024
+Wanted PAGE: 8
+---------
+
+                                                                Process 3: Single For Loop  
+
+---------
+PROC: 3
+PC: 0
+Wanted PAGE: 0
+---------
+---------
+PROC: 3
+PC: 128
+Wanted PAGE: 1
+---------
+---------
+PROC: 3
+PC: 256
+Wanted PAGE: 2
+---------
+---------
+PROC: 3
+PC: 384
+Wanted PAGE: 3
+---------
+
+                                                                Process 5: Linear Function  
+                        - This is the process that will go up to page 13 sequentially 
