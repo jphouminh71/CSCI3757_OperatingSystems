@@ -1,78 +1,107 @@
-Trying to collect some data to look for some patters, ran with ./test-lru -seed 512 to keep the output consistent between tests
-    * notes for when reading the graphs. The first iteration should always will look different from the rest of them because as the pages it needs gets accessed, they 
-    are already pre-paged in so you shouldn't see the swap time between them. 
+/* Write up of hwo you are going to predict what pages you want to bring in 
 
-                                                                Process 0: Double For loop
-                                    - accessed 9 total pages [0-8]
-                                    - repeatedly accessed them sequentially 
----------
-PROC: 0
-PC: 0
-Wanted PAGE: 0
----------
----------
-PROC: 0
-PC: 128
-Wanted PAGE: 1
----------
----------
-PROC: 0
-PC: 256
-Wanted PAGE: 2
----------
----------
-PROC: 0
-PC: 384
-Wanted PAGE: 3
----------
----------
-PROC: 0
-PC: 512
-Wanted PAGE: 4
----------
----------
-PROC: 0
-PC: 640
-Wanted PAGE: 5
----------
----------
-PROC: 0
-PC: 768
-Wanted PAGE: 6
----------
----------
-PROC: 0
-PC: 896
-Wanted PAGE: 7
----------
----------
-PROC: 0
-PC: 1024
-Wanted PAGE: 8
----------
+    Still unsure if the processes that are the same share the same pages in memory, otherwise the way you are approaching it right might be brining in too many pages.
+    If you can't figure out what kind of program is running the best you can do is bring in the page that the process is requesting and then bring in the next page.
 
-                                                                Process 3: Single For Loop  
+    Linear Program: 
+        - Hard to tell what kind of program this is by the time it hits the 14 page. So what you are going to do is just say you can't identify this type of program
+    and you are going to just page in whatever page that program wants and then attempt to page in the next page. Shouldn't see a seg fault or anything since pagein
+    will just fail 
 
----------
-PROC: 3
-PC: 0
-Wanted PAGE: 0
----------
----------
-PROC: 3
-PC: 128
-Wanted PAGE: 1
----------
----------
-PROC: 3
-PC: 256
-Wanted PAGE: 2
----------
----------
-PROC: 3
-PC: 384
-Wanted PAGE: 3
----------
 
-                                                                Process 5: Linear Function  
-                        - This is the process that will go up to page 13 sequentially 
+    Single For-loop Program:
+        - program will always go through pages 0-4 and only these pages. Try to keep these pages in for these processes. 
+        How you might try to identify if the program is single for loop. 
+            - if that process is trying to access page 0 and its previous access was page 4, then page in 0-4
+
+    Double For-loop Program:
+        - Similarly, this program functions the same way
+            - if that process is trying to access page 0 and its previous page access was page 8, then page in 0-8
+
+    Probabalistic Branch Program:
+        - once you identify what type of program this is, page out everything and bring in only the ones you want? 
+        - program loops from pages 0 - 13, but has an inner section where it loops between pages 9-13
+        How you might try to identify what type of program this is.
+            - treat the initial part of the program similar to the others and bring in the page it is requesting and then try to bring in the next subsequent page. 
+            Key: If the process is trying access page 9 and you know that the previous page access was page 13, then for that process page in 9-13
+
+    A Loop with an Inner Branch Program:
+        - looks like at every iteration it wants the pages 0-4
+        - based on the branch the next subseqent pages will be 
+            0 - 12 
+                OR 
+            11 and 12 
+
+        How you will identify what type of process this is, 
+            for the sequential case you might just want to treat this as a linear program and bring in the next page
+            to try to avoid that:
+                if the page you want is 10 and the previous access was page 4 the, just bring in page 10 and maybe 11? 
+
+
+
+/* METHOD: Leveraging given code types and examining previously accessed pages for that process to try and classify its program type 
+        examining R graphs to determine the page numbers that each program utitlizes: seed 512 
+    List of program types and their page orders : (page = PC / PAGESIZE)
+        1. Linear 
+            Accesses these pages in order [0, 1, 2, 3, 4 ... 15]
+        2. Single Loop
+            Possible pages: [0, 1, 2, 3, 4]
+            Accesses them in this order: [0,1,2,3,4,0,4,0,4,0,4] 
+        3. Loop with Inner Branch
+            [0,1,2,3,4,5,6,...,12]
+            Accesses them in this order: []
+        4. Double Nested Loop
+            Possible pages: [0,1,2,3,4..9]
+            Accesses them in this order: []
+        5. Probabilistic Backward Branch
+            Possible pages: [0,1,2,3,4,5,6,..14]
+            Accesses them in this order: []
+
+        Try to identify the type of page that its accessing by looking at its program counter 
+
+*/
+
+
+
+/*
+
+// use this to check the entries for each process
+// printf("All Initalized Processes\n");
+    // for (int k = 0; k < MAXPROCESSES; k++) {
+    //     printf("Process ID: %d\n", pp[k].processNumber );
+    //     printf("Process Entries--\n");
+    //     for (int j = 0; j < pp[k].entryCount; j++) {
+    //         printf("%d\n", pp[k].entries[j]);
+    //     }
+    //     printf("------\n");
+    // }
+    // exit(0);    // kill the process 
+
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+*/

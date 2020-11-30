@@ -25,7 +25,7 @@ void pageit(Pentry q[MAXPROCESSES]) {
     static int initialized = 0;
     static int tick = 1; // artificial time
     static int timestamps[MAXPROCESSES][MAXPROCPAGES];
-    static int previousPage = -1;
+    //static int previousPage = -1;
 
     /* Local vars */
     int proctmp;
@@ -67,26 +67,23 @@ void pageit(Pentry q[MAXPROCESSES]) {
             /* Printing out the contents of this process to try to determing what kind of process it is */
             /* only print this page depending on if a new page if its not the previous page */
             /* try to only track one process at at a time*/
-            if (proc == 4 && previousPage != page){ // figure out what process 0 is
-                previousPage = page; 
-                printf("---------\n");
-                printf("PROC: %d\n", proc);
-                printf("PC: %d\n", pc);
-                printf("Wanted PAGE: %d\n", page);
-                printf("---------\n");
-            }
+            // if (proc == 18 && previousPage != page){ // figure out what process 0 is
+            //     printf("---------\n");
+            //     printf("PROC: %d\n", proc);
+            //     printf("PC: %d\n", pc);
+            //     printf("Accessed PAGE: %d\n", page);
+            //     printf("---------\n");
+            //     previousPage = page; 
+            // }
 
             // if the that current index is unallocated or the page is already in there 
             if(!q[proc].pages[page]) {
 
                 // if page the program counter is pointing too isn't paged in 
-                if(!pagein(proc,page)) {  // if the page I want isn't paged into the frames 
+                if(!pagein(proc,page)) {  // if there is no more room left in the physical pages 
                 
                    int maxTime = timestamps[proc][page];
                    int pageToSwap = timestamps[proc][page]%MAXPROCPAGES;  // indexes into the oldest page based on the 'tick', @22ticks means that index 2 is the oldest page
-                //    printf(">> %d\n", maxTime);
-                //    printf(">> %d\n", pageToSwap);
-                //    printf("PAGE TO SWAP %d\n", pageToSwap);
                    
                     // look through for a page that has an older time 
                     for(oldpage=pageToSwap; oldpage > 0; oldpage--) {
@@ -97,7 +94,7 @@ void pageit(Pentry q[MAXPROCESSES]) {
                         }
                     }
                     pageout(proc, pageToSwap);
-                    //printf("-------\n");
+                    printf("-------\n");
                 }
             }
         }
