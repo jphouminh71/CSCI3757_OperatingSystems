@@ -22,7 +22,6 @@ void pageit(Pentry q[MAXPROCESSES]) {
 
     /* Static vars */
     static int initialized = 0;
-    static int tick = 1; // artificial time
     static int previousAccess[MAXPROCESSES];    // array of previously accessed pages for each process (initially 0 for all)
     
 
@@ -46,54 +45,81 @@ void pageit(Pentry q[MAXPROCESSES]) {
             pc = q[proc].pc; 		   
             page = pc/PAGESIZE; 		             
 
-            if (!q[proc].pages[page]) {  // if the page this process is looking for isn't in the physical frames
-
+            if (!q[proc].pages[page]) {  // if the page this process is looking for isn't in the physical frames    
                 if (!pagein(proc,page)){
-
-                    // page out all the previous pages that this process had 
+                     
                     for (int i = 0; i < MAXPROCPAGES; i++) {
                         pageout(proc, i);
                     }
-                    
-                    // page the page that the process wanted initially
-                    pagein(proc, page);    
 
+                    
                     // start to check to see if you can predict the next incoming pages
                     if (previousAccess[proc] == 3 && page == 0) { // single for loop 
+                        printf("single loop\n");
+                        int k = 0;
                         for (int i = 0; i < 4; i++){
-                            pagein(proc, i);
+                            if (pagein(proc, i)){
+                                k++;
+                            }
                         }
-                        previousAccess[proc] = 3;
+                        previousAccess[proc] = k;
                         break;
                     }
-                    else if (previousAccess[proc] == 8 && page == 0) { // double for loop
+                    else if (previousAccess[proc] == 9 && page == 0) { // double for loop
+                        printf("double loop\n");
+                        int j = 0;
                         for (int i = 0; i < 9; i++){
-                            pagein(proc, i);
+                            if (pagein(proc, i)) {
+                                j++;
+                            }
                         }
-                        previousAccess[proc] = 8;
+                        previousAccess[proc] = j;
                         break;
                     }
                     else if ((previousAccess[proc] == 13 && page == 8) || (previousAccess[proc] == 8 && page == 13) ) { // probabalistic loop
+                        printf("probabilstic loop\n");
+                        int g = 0; 
                         for (int i = 9; i < 14; i++){
-                            pagein(proc,i);
+                            if (pagein(proc,i)) {
+                                g++;
+                            }
                         }
-                        previousAccess[proc] = 13;
+                        previousAccess[proc] = g;
                         break;
                     }
-                    else if (previousAccess[proc] == 13 && page == 0) {  // trying to predict the linear part of the probabalistic loop 
+                    else if (previousAccess[proc] == 13 && page == 0) {  // trying to predict the linear part of the probabalistic loop
+                        printf("linear p loop\n");
+                        int f = 0;
                         for (int i = 0; i < 13; i++){
-                            pagein(proc, i);
+                            if (pagein(proc, i)) {
+                                f++;
+                            }
                         }
-                        previousAccess[proc] = 13;
+                        previousAccess[proc] = f;
                         break;
                     }
-                    previousAccess[proc] = page;
+                    else if ((previousAccess[proc] == 3 && page == 11) || (previousAccess[proc] == 3 && page == 10)) {   // loop with inner branch
+                        printf("branch loop\n");
+                        int y = 0;
+                        for (int i = 11; i < 13; i++){
+                            if (pagein(proc,i)){
+                                y++;
+                            }
+                        }
+                        previousAccess[proc] = y;
+                        break;
+                    }
+                    else {
+                        printf("linear\n");
+                        pageout(proc, page-1);
+                        pagein(proc, page);
+                        pagein(proc, page+1); // bring in the next page since thats what it most likely will do 
+                        previousAccess[proc] = page+1;
+                    }
                 }
             }
         }
     } 
-    /* advance time for next pageit iteration */
-    tick++;
 } 
 
 // /* start to check to see if you can predict the next incoming pages */

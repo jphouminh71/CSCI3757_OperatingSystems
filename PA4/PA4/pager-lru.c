@@ -94,7 +94,7 @@ void pageit(Pentry q[MAXPROCESSES]) {
                         }
                     }
                     pageout(proc, pageToSwap);
-                    printf("-------\n");
+                    pagein(proc, page);
                 }
             }
         }
